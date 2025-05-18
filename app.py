@@ -1,45 +1,35 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, render_template
 import numpy as np
 import joblib
-import os
 
 app = Flask(__name__)
 
 # Load model and scaler
-model_path = 'xgboost_fraud_model.pkl'
-scaler_path = 'xgboost_scaler.pkl'
+model = joblib.load("xgboost_fraud_model.pkl")
+scaler = joblib.load("xgboost_scaler.pkl")
 
-model = joblib.load(model_path)
-scaler = joblib.load(scaler_path)
+# Define the feature names in the expected order
+features = [
+    'Time', 'Amount', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8',
+    'V9', 'V10', 'V11', 'V12', 'V13', 'V14', 'V15', 'V16', 'V17',
+    'V18', 'V19', 'V20', 'V21', 'V22', 'V23', 'V24', 'V25', 'V26',
+    'V27', 'V28'
+]
 
-# List of features used in the model (you can also auto-load this if you saved it)
-feature_names = ['Time'] + [f'V{i}' for i in range(1, 29)] + ['Amount']
+@app.route("/", methods=["GET"])
+def index():
+    return render_template("index.html", features=features, prediction=None)
 
-@app.route('/', methods=['GET'])
-def home():
-    return render_template('index.html', feature_names=feature_names, prediction=None)
-
-@app.route('/predict', methods=['POST'])
+@app.route("/predict", methods=["POST"])
 def predict():
     try:
-        data = [float(request.form.get(col)) for col in feature_names]
-        scaled_data = scaler.transform([data])
-        prediction = int(model.predict(scaled_data)[0])
-        return render_template('index.html', feature_names=feature_names, prediction=prediction)
+        input_data = [float(request.form[feature]) for feature in features]
+        scaled_input = scaler.transform([input_data])
+        pred = model.predict(scaled_input)[0]
+        result = "Fraud" if pred == 1 else "Not Fraud"
+        return render_template("index.html", features=features, prediction=result)
     except Exception as e:
-        return f"Error during prediction: {str(e)}", 500
+        return f"Error occurred: {e}"
 
-# For API use
-@app.route('/api/predict', methods=['POST'])
-def api_predict():
-    try:
-        input_data = request.json
-        data = [input_data[col] for col in feature_names]
-        scaled_data = scaler.transform([data])
-        prediction = int(model.predict(scaled_data)[0])
-        return jsonify({'prediction': prediction})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 400
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(debug=True)
