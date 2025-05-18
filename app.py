@@ -1,35 +1,31 @@
-from flask import Flask, request, render_template
+from flask import Flask, render_template, request
 import numpy as np
 import joblib
 
 app = Flask(__name__)
 
 # Load model and scaler
-model = joblib.load("xgboost_fraud_model.pkl")
-scaler = joblib.load("xgboost_scaler.pkl")
+model = joblib.load('xgboost_fraud_model.pkl')
+scaler = joblib.load('xgboost_scaler.pkl')
 
-# Define the feature names in the expected order
-features = [
-    'Time', 'Amount', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8',
-    'V9', 'V10', 'V11', 'V12', 'V13', 'V14', 'V15', 'V16', 'V17',
-    'V18', 'V19', 'V20', 'V21', 'V22', 'V23', 'V24', 'V25', 'V26',
-    'V27', 'V28'
-]
-
-@app.route("/", methods=["GET"])
+@app.route('/')
 def index():
-    return render_template("index.html", features=features, prediction=None)
+    return render_template('index.html', prediction=None)
 
-@app.route("/predict", methods=["POST"])
+@app.route('/predict', methods=['POST'])
 def predict():
     try:
-        input_data = [float(request.form[feature]) for feature in features]
-        scaled_input = scaler.transform([input_data])
-        pred = model.predict(scaled_input)[0]
-        result = "Fraud" if pred == 1 else "Not Fraud"
-        return render_template("index.html", features=features, prediction=result)
+        input_features = [float(request.form[f'V{i}']) for i in range(1, 29)]
+        input_features.insert(0, float(request.form['Amount']))
+        input_features.insert(0, float(request.form['Time']))
+        input_array = np.array([input_features])
+        input_scaled = scaler.transform(input_array)
+        prediction = model.predict(input_scaled)[0]
+        proba = model.predict_proba(input_scaled)[0][1] * 100
+        result = "Fraudulent" if prediction == 1 else "Legitimate"
+        return render_template('index.html', prediction=result, proba=f"{proba:.2f}")
     except Exception as e:
-        return f"Error occurred: {e}"
+        return f"Error: {str(e)}"
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(debug=True)
