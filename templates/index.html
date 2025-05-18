@@ -1,25 +1,56 @@
-<!-- templates/index.html -->
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Credit Card Fraud Detection</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 40px; }
-        input, button { padding: 10px; margin: 5px; width: 300px; }
-        form { max-width: 600px; }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f0f0f0;
+        }
+        h2 {
+            color: #333;
+        }
+        form {
+            background: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            width: 500px;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+        input[type="submit"] {
+            padding: 10px 20px;
+            background-color: #28a745;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
-    <h1>Credit Card Fraud Detection</h1>
+    <h2>Credit Card Fraud Detection</h2>
     <form method="POST" action="/predict">
-        {% for col in feature_names %}
-            <label>{{ col }}:</label><br>
-            <input type="number" step="any" name="{{ col }}" required><br>
+        {% for feature in features %}
+            <label>{{ feature }}:</label>
+            <input type="number" name="{{ feature }}" step="any" required><br>
         {% endfor %}
-        <button type="submit">Predict</button>
+        <input type="submit" value="Predict">
     </form>
+
     {% if prediction is not none %}
-        <h2>Prediction: {{ 'Fraud' if prediction == 1 else 'Not Fraud' }}</h2>
+        <div class="result">
+            Result: <span style="color: {{ 'red' if prediction == 'Fraud' else 'green' }}">{{ prediction }}</span>
+        </div>
     {% endif %}
 </body>
 </html>
