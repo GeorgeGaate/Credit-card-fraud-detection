@@ -1,7 +1,6 @@
 services:
   - type: web
-    name: fraud-detection-api
+    name: credit-card-fraud-detection
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: python app.py
-    autoDeploy: true
+    startCommand: gunicorn app:app
