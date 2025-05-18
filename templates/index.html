@@ -1,0 +1,25 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Credit Card Fraud Detection</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        input, button { padding: 10px; margin: 5px; width: 300px; }
+        form { max-width: 600px; }
+    </style>
+</head>
+<body>
+    <h1>Credit Card Fraud Detection</h1>
+    <form method="POST" action="/predict">
+        {% for col in feature_names %}
+            <label>{{ col }}:</label><br>
+            <input type="number" step="any" name="{{ col }}" required><br>
+        {% endfor %}
+        <button type="submit">Predict</button>
+    </form>
+    {% if prediction is not none %}
+        <h2>Prediction: {{ 'Fraud' if prediction == 1 else 'Not Fraud' }}</h2>
+    {% endif %}
+</body>
+</html>
